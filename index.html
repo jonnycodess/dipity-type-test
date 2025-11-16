@@ -16,13 +16,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="header-container">
+  <header id="header-container">
     <img id="header-logo" src="images/dipity-logo.svg" alt="">
     <div id="header-menu-container">
-      <p class="header-menu-option">Type Test</p>
-      <p class="header-menu-option">Leaderboard</p>
-      <p class="header-menu-option" id="about-button">About</p>
-    </div>
+      <p class="header-menu-option" id="type-test-header-option">Type Test</p>
+      <p class="header-menu-option" id="leaderboard-header-option">Leaderboard</p>
+      <p class="header-menu-option" id="about-header-button">About</p>
+    </header>
   </div>
   <div class="content">
     <p id="test-text"></p>
@@ -41,10 +41,12 @@
       </div>
       </div>
       </div>
-      <div id="footer-container">
+      <footer id="footer-container">
         <a href="https://github.com/jonnycodess"><img id="github-button" src="images/github-logo.svg" alt=""></a>
-        <!-- <a href=""><img id="x-button" src="images/x-twitter-logo.svg" alt=""></a> -->
-      </div>
+      </footer>
+
+  <!-- Chart.js import-->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <script src="typing-test.js"></script>
 </body>
 </html>

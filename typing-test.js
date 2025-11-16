@@ -95,8 +95,10 @@ function updateCountDown() {
     testArea.readOnly = true;
     testArea.value = '';
     clearInterval(countdownIntervalID);
+    
   }
 }
+
 
 function generateTestWords() {
   while (testText.innerText.length < 240) {
@@ -156,7 +158,8 @@ function generateTestText() {
 
 let liveWpmDisplay = document.getElementById('live-wpm-display');
 
-let testText = document.querySelector('#test-text');
+let testContent = document.querySelector('.content');
+let testText = document.getElementById('test-text');
 
 generateTestText();
 
@@ -394,3 +397,121 @@ function removeDropDown(event) {
     return;
   }
 }
+
+let typeTestHeaderButton = document.getElementById('type-test-header-option');
+
+typeTestHeaderButton.classList.add('active-header-button');
+
+typeTestHeaderButton.addEventListener('click', () => { 
+  if (leaderboardHeaderButton.classList.contains('active-header-button')) {
+    leaderboardHeaderButton.classList.remove('active-header-button');
+  }
+    else if (aboutHeaderButton.classList.contains('active-header-button')) {
+    aboutHeaderButton.classList.remove('active-header-button');
+  }
+
+  typeTestHeaderButton.classList.add('active-header-button') });
+
+let leaderboardHeaderButton = document.getElementById('leaderboard-header-option');
+
+leaderboardHeaderButton.addEventListener('click', () => { 
+  if (typeTestHeaderButton.classList.contains('active-header-button')) {
+    typeTestHeaderButton.classList.remove('active-header-button');
+  }
+  else if (aboutHeaderButton.classList.contains('active-header-button')) {
+    aboutHeaderButton.classList.remove('active-header-button');
+  }
+
+  leaderboardHeaderButton.classList.add('active-header-button') });
+
+
+  let aboutHeaderButton = document.getElementById('about-header-button');
+
+aboutHeaderButton.addEventListener('click', () => { 
+  if (typeTestHeaderButton.classList.contains('active-header-button')) {
+    typeTestHeaderButton.classList.remove('active-header-button');
+  }
+  else if (leaderboardHeaderButton.classList.contains('active-header-button')) {
+    leaderboardHeaderButton.classList.remove('active-header-button');
+  }
+
+  aboutHeaderButton.classList.add('active-header-button') });
+
+  testContent.innerHTML = '';
+
+  let chartWrapper = document.createElement('div');
+  chartWrapper.id = 'chartWrapper';
+  testContent.appendChild(chartWrapper);
+
+  let chartCanvas = document.createElement('canvas');
+  chartCanvas.id = 'chart';
+  chartWrapper.appendChild(chartCanvas);
+
+  const ctx = document.getElementById('chart');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['10', '20', '30', '40', '50', '60'],
+      datasets: [{
+        data: [85, 80, 78, 82, 85, 88],
+        borderWidth: 2,
+        borderColor: '#08c70e',
+        backgroundColor: '#08c70e',
+      }]
+    },
+    options: {
+      font: {
+        family: 'Poppins'
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+          display: false
+      }},
+      scales: {
+        y: {
+          min: 65,
+          max: 95,
+          ticks: {
+            color: '#E6E6E6'
+          },
+          grid: {
+            color: '#08c70e2c '
+          },
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: 'WPM',
+            color: '#ffffffff',
+            font: {
+              size: 13,
+              weight: 500
+            }
+          }
+        },
+        x: {
+          ticks: {
+            color: '#E6E6E6'
+          },
+          grid: {
+            color: '#08c70e2c '
+          },
+          display: true,
+          title: {
+            display: true,
+            text: 'Seconds Elapsed',
+            color: '#ffffffff',
+            font: {
+              size: 13,
+              weight: 500
+            }
+          }
+        }
+      }
+    }
+  });

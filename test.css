@@ -188,3 +188,15 @@ body {
   width: 3vh;
   cursor: pointer;
 }
+
+.active-header-button {
+  color: #b243e5;
+}
+
+#chart {
+  background-color: #000000;
+}
+
+#chartWrapper {
+  width: 100%;
+}
