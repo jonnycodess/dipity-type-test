@@ -75,6 +75,10 @@ function calcGrossWPM(charsInput) {
 
 let secondsPassed = 0;
 
+let wpmEachWord = []
+let wpmLabels = []
+let wpmEachWordIndex = 0;
+
 function updateCountDown() {
   const minutes = Math.floor(time / 60);
   let seconds = time % 60;
@@ -85,9 +89,15 @@ function updateCountDown() {
       if (seconds === 0 && countdownEl.innerHTML === '60 Sec') {
         seconds = 59;
       }
+      // Do each second
       countdownEl.innerHTML = `${seconds} Sec`;
       time--;
       secondsPassed++;
+      /*
+        Try removing event from remove typo function and set data to correct time
+      */
+      // wpmEachSecond[wpmEachSecondIndex] = (totalCharsTyped / 5) / (secondsPassed / 60);
+      // wpmEachSecondIndex++;
     }
   }
   // Stop countdown and display WPM when timer hits 0 seconds
@@ -95,7 +105,8 @@ function updateCountDown() {
     testArea.readOnly = true;
     testArea.value = '';
     clearInterval(countdownIntervalID);
-    
+    testContent.innerHTML = '';
+    showTestResults();
   }
 }
 
@@ -189,6 +200,7 @@ function handleInput(event) {
   checkInputAccuracy(event);
 }
 
+
 function calcNetWPM (event) {
   if (testArea.readOnly === false) {
     removeTypoCharsFromTotalChars(event);
@@ -201,6 +213,9 @@ function calcNetWPM (event) {
     }
     if (secondsPassed !== 0) {
       liveWpmDisplay.innerText = `${Math.round((totalCharsTyped / 5) / (secondsPassed / 60))} WPM`;
+      wpmEachWord[wpmEachWordIndex] = Math.round((totalCharsTyped / 5) / (secondsPassed / 60));
+      wpmLabels[wpmEachWordIndex] = secondsPassed.toString();
+      wpmEachWordIndex++
     }
   }
 }
@@ -215,19 +230,22 @@ function checkForIncompleteWord() {
   }
 }
 
+let incorrectLetters = 0;
+
 function removeTypoCharsFromTotalChars(event) {
   if (event.key === ' ' && currentWordSubtracted === false) {
     let currentWordCharsTyped = 0;
     for (let i = 0; i < testText.children[wordCounter].children.length ; i++) {
       if (testText.children[wordCounter].children[i].classList.contains('correct-char') || testText.children[wordCounter].children[i].classList.contains('incorrect-char')) {
-      currentWordCharsTyped++;
-      // console.log(`currentWordCharsTyped ${currentWordCharsTyped}`)
-      // console.log(testText.children[wordCounter].children[i].classList)
+        currentWordCharsTyped++;
+        // console.log(`currentWordCharsTyped ${currentWordCharsTyped}`)
+        // console.log(testText.children[wordCounter].children[i].classList)
       }
       if (currentWordSubtracted === false && testText.children[wordCounter].children[i].classList.contains('incorrect-char') || currentWordSubtracted === false && testText.children[wordCounter].children[i].classList.value === 'test-char' && i !== testText.children[wordCounter].children.length - 1) {        // console.log('nested if')
         // console.log(`word children length ${testText.children[wordCounter].children.length}`)
         totalCharsTyped -= testText.children[wordCounter].children.length;
         styleIncorrectWord();
+        incorrectLetters++;
         currentWordSubtracted = true;
         if (totalCharsTyped < 0) {
           totalCharsTyped = 0;
@@ -235,11 +253,13 @@ function removeTypoCharsFromTotalChars(event) {
       }
     }
     if (currentWordSubtracted === true) {
-    totalCharsTyped -= currentWordCharsTyped + 1;
+      totalCharsTyped -= currentWordCharsTyped + 1;
     }
     currentWordSubtracted = false;
   }
 }
+
+
 
 function styleIncorrectWord() {
   let children = testText.children[wordCounter].children;
@@ -298,31 +318,7 @@ function checkInputAccuracy(event) {
 
 let startingTimeString = '30 Sec';
 let restartButton = document.getElementById('restart-button');
-restartButton.addEventListener('click', restartTest)
 
-document.addEventListener('keyup', restartTest)
-
-function restartTest(event) {
-  if (event.type === 'click' || event.key === 'r' && document.activeElement !== testArea || event.key === 'R' && document.activeElement !== testArea || event.key === 'r' && testArea.readOnly === true || event.key === 'R' && testArea.readOnly === true) {
-    testArea.readOnly = false;
-    totalCharsTyped = 1;
-    testArea.value = '';
-    // Reset countdown
-    time = startingMinutes * 60;
-    countdownEl.innerText = startingTimeString;
-    clearInterval(countdownIntervalID);
-    countdownIntervalID = setInterval(updateCountDown, 1000);
-    // Reset WPM
-    liveWpmDisplay.innerText = '0 WPM';
-    secondsPassed = 0;
-    // Reset text styles
-    childCounter = 0;
-    wordCounter = 0;
-    inputHandled;
-    currentWordSubtracted = false;
-    generateTestText();
-  }
-}
 
 testText.addEventListener('click', () => (testArea.focus()))
 
@@ -437,81 +433,204 @@ aboutHeaderButton.addEventListener('click', () => {
 
   aboutHeaderButton.classList.add('active-header-button') });
 
-  testContent.innerHTML = '';
-
   let chartWrapper = document.createElement('div');
-  chartWrapper.id = 'chartWrapper';
-  testContent.appendChild(chartWrapper);
+  let resultsWrapper = document.createElement('div');
 
-  let chartCanvas = document.createElement('canvas');
-  chartCanvas.id = 'chart';
-  chartWrapper.appendChild(chartCanvas);
 
-  const ctx = document.getElementById('chart');
+    function createChart() {
+      chartWrapper.id = 'chartWrapper';
+      testContent.appendChild(chartWrapper);
 
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['10', '20', '30', '40', '50', '60'],
-      datasets: [{
-        data: [85, 80, 78, 82, 85, 88],
-        borderWidth: 2,
-        borderColor: '#08c70e',
-        backgroundColor: '#08c70e',
-      }]
-    },
-    options: {
-      font: {
-        family: 'Poppins'
-      },
-      plugins: {
-        legend: {
-          display: false
+      let chartCanvas = document.createElement('canvas');
+      chartCanvas.id = 'chart';
+      chartWrapper.appendChild(chartCanvas);
+
+      const ctx = document.getElementById('chart');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: wpmLabels,
+          datasets: [{ 
+            data: wpmEachWord,
+            // data: [wpmEachSecond[0], wpmEachSecond[1], wpmEachSecond[2]],
+            borderWidth: 2,
+            borderColor: '#08c70e',
+            backgroundColor: '#08c70e',
+          }]
         },
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          display: false
-      }},
-      scales: {
-        y: {
-          min: 65,
-          max: 95,
-          ticks: {
-            color: '#E6E6E6'
+        options: {
+          font: {
+            family: 'Poppins'
           },
-          grid: {
-            color: '#08c70e2c '
-          },
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: 'WPM',
-            color: '#ffffffff',
-            font: {
-              size: 13,
-              weight: 500
-            }
-          }
-        },
-        x: {
-          ticks: {
-            color: '#E6E6E6'
-          },
-          grid: {
-            color: '#08c70e2c '
-          },
-          display: true,
-          title: {
-            display: true,
-            text: 'Seconds Elapsed',
-            color: '#ffffffff',
-            font: {
-              size: 13,
-              weight: 500
+          plugins: {
+            legend: {
+              display: false
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: {
+              display: false
+          }},
+          scales: {
+            y: {
+              // min: 65,
+              // max: 95,
+              ticks: {
+                color: '#E6E6E6'
+              },
+              grid: {
+                color: '#08c70e2c '
+              },
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: 'WPM',
+                color: '#ffffffff',
+                font: {
+                  size: 13,
+                  weight: 500
+                }
+              }
+            },
+            x: {
+              ticks: {
+                color: '#E6E6E6'
+              },
+              grid: {
+                color: '#08c70e2c '
+              },
+              display: true,
+              title: {
+                display: true,
+                text: 'Seconds Elapsed',
+                color: '#ffffffff',
+                font: {
+                  size: 13,
+                  weight: 500
+                }
+              }
             }
           }
         }
-      }
+      });
     }
-  });
+
+
+function showTestResults() {
+  let accuracy = Math.round(totalCharsTyped / incorrectLetters);
+
+  if (accuracy = 'Infinity') {
+    accuracy = 100;
+  }
+
+  let highestScore = 0;
+
+  for (let i = 0; i < wpmEachWord.length; i++) {
+    if (wpmEachWord[i] > highestScore) {
+      highestScore = wpmEachWord[i];
+    }
+  }
+
+  createChart();
+
+  resultsWrapper.id = 'results-wrapper';
+  testContent.appendChild(resultsWrapper);
+
+  let highestWpmWrapper = document.createElement('div');
+  highestWpmWrapper.id = 'highest-wpm-wrapper';
+  resultsWrapper.appendChild(highestWpmWrapper);
+
+  let highestWpmValue = document.createElement('p');
+  highestWpmValue.id = 'highest-wpm-value';
+  highestWpmValue.innerText = highestScore.toString();
+  highestWpmWrapper.appendChild(highestWpmValue);
+
+  let highestWPM = document.createElement('p');
+  highestWPM.id = 'highest-wpm';
+  highestWPM.innerText = 'Highest WPM'
+  highestWpmWrapper.appendChild(highestWPM);
+
+  let accuracyWrapper = document.createElement('div');
+  accuracyWrapper.id = 'accuracy-wrapper';
+  resultsWrapper.appendChild(accuracyWrapper);
+
+  let accuracyValue = document.createElement('p');
+  accuracyValue.id = 'accuracy-value';
+  accuracyValue.innerText = `${accuracy.toString()}%`;
+  accuracyWrapper.appendChild(accuracyValue);
+
+  let accuracyText = document.createElement('p');
+  accuracyText.id = 'accuracy';
+  accuracyText.innerText = 'Accuracy'
+  accuracyWrapper.appendChild(accuracyText);
+
+  restartButton.id = 'restart-result-screen'
+  resultsWrapper.appendChild(restartButton)
+
+  restartButton.addEventListener('click', restartTest)
+}
+
+testContentInner = testContent.innerHTML;
+
+
+restartButton.addEventListener('click', restartTest)
+
+document.addEventListener('keyup', restartTest)
+
+let bottomUiContainer = document.getElementById('bottom-ui-container');
+
+function restartTest(event) {
+  if (event.type === 'click' || event.key === 'r' && document.activeElement !== testArea || event.key === 'R' && document.activeElement !== testArea || event.key === 'r' && testArea.readOnly === true || event.key === 'R' && testArea.readOnly === true) {
+    if (testContent.contains(chartWrapper)) {
+      testContent.removeChild(chartWrapper)
+    }
+
+    if (testContent.contains(resultsWrapper)) {
+      testContent.removeChild(resultsWrapper)
+    }
+
+    if (!testContent.contains(testText)) {
+      testContent.appendChild(testText)
+    }
+
+    if (!testContent.contains(bottomUiContainer)) {
+      testContent.appendChild(bottomUiContainer)
+    }
+
+    if (!bottomUiContainer.contains(testArea)) {
+      bottomUiContainer.appendChild(testArea)
+    }
+
+    if (!bottomUiContainer.contains(countdownEl)) {
+      bottomUiContainer.appendChild(countdownEl)
+    }
+
+    if (!bottomUiContainer.contains(liveWpmDisplay)) {
+      bottomUiContainer.appendChild(liveWpmDisplay)
+    }
+
+    if (!bottomUiContainer.contains(restartButton)) {
+      bottomUiContainer.appendChild(restartButton)
+      restartButton.id = 'restart-button';
+    }
+
+    testArea.readOnly = false;
+    totalCharsTyped = 1;
+    testArea.value = '';
+    // Reset countdown
+    time = startingMinutes * 60;
+    countdownEl.innerText = startingTimeString;
+    clearInterval(countdownIntervalID);
+    countdownIntervalID = setInterval(updateCountDown, 1000);
+    // Reset WPM
+    liveWpmDisplay.innerText = '0 WPM';
+    secondsPassed = 0;
+    // Reset text styles
+    childCounter = 0;
+    wordCounter = 0;
+    inputHandled;
+    currentWordSubtracted = false;
+    generateTestText();
+  }
+}
